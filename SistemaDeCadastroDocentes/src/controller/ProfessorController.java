@@ -39,6 +39,9 @@ public class ProfessorController implements ActionListener {
 		this.tfProfessorPontuacao = tfProfessorPontuacao;
 		this.taProfessorListaProfessores = taProfessorListaProfessores;
 	}
+	public ProfessorController() {
+		
+	}
 
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
@@ -252,76 +255,63 @@ public class ProfessorController implements ActionListener {
 		}
 	
 
-	private void atualizaProfessor(Professor professor) throws Exception {
-		// TODO Auto-generated method stub
-		   // Caminho para os arquivos
-        String path = System.getProperty("user.home") + File.separator + "SistemaCadastroDocentes";
-        File arq = new File(path, "arquivoprofessor.csv");
-        File auxArq = new File(path, "arquivoprofessorAux.csv");
-        // Verifica se o arquivo original existe
-       
-        if(arq.exists()&&arq.isFile()) {
-        	BufferedReader fw = new BufferedReader(new InputStreamReader(new FileInputStream(arq)));
-    		BufferedWriter pw = new BufferedWriter(new FileWriter(auxArq,true));
-    		Lista<Professor> listaProfessores = new Lista<Professor>() ;    	
-            String linha;
-            while ((linha = fw.readLine()) != null) {
-                String[] vetLinha = linha.split(";");
-                Professor professorAux= new Professor();
-                if (!vetLinha[0].equals(professor.getCpfProfessor())) {
-                	if(listaProfessores.isEmpty()) {
-            		professorAux.setCpfProfessor(vetLinha[0]);
-            		professorAux.setNomeProfessor(vetLinha[1]);
-            		professorAux.setAreaInteresse(vetLinha[2]);
-            		try {
-            		professorAux.setPontuacaoProfessor(Integer.parseInt(vetLinha[3]));
-            		} catch (Exception e) {
-            		
-            		}
-            		
-                listaProfessores.addFirst(professorAux);}
-            	else {
-            		professorAux.setCpfProfessor(vetLinha[0]);
-            		professorAux.setNomeProfessor(vetLinha[1]);
-            		professorAux.setAreaInteresse(vetLinha[2]);
-            		try {
-            		professorAux.setPontuacaoProfessor(Integer.parseInt(vetLinha[3]));
-            		} catch (Exception e) {
-            		
-            		}
-            		listaProfessores.addLast(professorAux);
-            	}
-                pw.write(linha);
-                pw.newLine();
-            }
-                    	else {
-                    		if(listaProfessores.isEmpty()) {
-                        		                        		
-                            listaProfessores.addFirst(professor);}
-                        	else {
-                        		
-                        		listaProfessores.addLast(professor);
-                        		
-                        	}
-                    		pw.write(professor.toString());
-                            pw.newLine();
-                    	}
-                
-                    	}
+	private void atualizaProfessor(Professor professor) throws Exception { 
+	    // Caminho para os arquivos
+	    String path = System.getProperty("user.home") + File.separator + "SistemaCadastroDocentes";
+	    File arq = new File(path, "arquivoprofessor.csv");
+	    File auxArq = new File(path, "arquivoprofessorAux.csv");
+	    
+	    // Verifica se o arquivo original existe
+	    if (arq.exists() && arq.isFile()) {
+	        BufferedReader fw = new BufferedReader(new InputStreamReader(new FileInputStream(arq)));
+	        BufferedWriter pw = new BufferedWriter(new FileWriter(auxArq, true));
+	        
+	        Lista<Professor> listaProfessores = new Lista<Professor>(); // Lista para armazenar os professores atualizados
+	        String linha;
+	        
+	        while ((linha = fw.readLine()) != null) {
+	            String[] vetLinha = linha.split(";");
+	            Professor professorAux = new Professor();
+	            
+	            // Sempre substitui o professor com o CPF igual ao informado
+	            if (vetLinha[0].equals(professor.getCpfProfessor())) {
+	                professorAux.setCpfProfessor(professor.getCpfProfessor());
+	                professorAux.setNomeProfessor(professor.getNomeProfessor());
+	                professorAux.setAreaInteresse(professor.getAreaInteresse());
+	                professorAux.setPontuacaoProfessor(professor.getPontuacaoProfessor());
+	            } else {
+	                professorAux.setCpfProfessor(vetLinha[0]);
+	                professorAux.setNomeProfessor(vetLinha[1]);
+	                professorAux.setAreaInteresse(vetLinha[2]);
+	                try {
+	                    professorAux.setPontuacaoProfessor(Integer.parseInt(vetLinha[3]));
+	                } catch (Exception e) {
+	                    // Tratar a exceção
+	                }
+	            }
 
-                	
-        
-            
-            pw.close();
-    		fw.close();
-    	
-        
+	            listaProfessores.addLast(professorAux); // Adiciona o professor atualizado ou original
+	            pw.write(professorAux.getCpfProfessor() + ";" + professorAux.getNomeProfessor() + ";" + 
+	                     professorAux.getAreaInteresse() + ";" + professorAux.getPontuacaoProfessor());
+	            pw.newLine();
+	        }
+	        
+	        // Reordena os professores por pontuação após a atualização
+	        ordenarPorPontuacaoArquivo(listaProfessores, arq);
 
-        // Substitui o arquivo original pelo auxiliar
-           arq.delete();
-           auxArq.renameTo(arq);
-		taProfessorListaProfessores.setText("Professor atualizado");}
-}
+	        pw.close();
+	        fw.close();
+
+	        // Substitui o arquivo original pelo auxiliar
+	        arq.delete();
+	        auxArq.renameTo(arq);
+
+	        taProfessorListaProfessores.setText("Professor atualizado com sucesso!");
+	    } else {
+	        taProfessorListaProfessores.setText("Arquivo não encontrado.");
+	    }
+	}
+
 
 	//CADASTRAR PROFESSOR
 	private void cadastraProfessor(String csvProfessor) throws Exception {
@@ -362,8 +352,9 @@ public class ProfessorController implements ActionListener {
     		} catch (Exception e) {
     		
     		}
+    		 listaProfessores.addLast(professor);
 	}
-        pw.write(csvProfessor+"\r\n");
+		ordenarPorPontuacaoArquivo(listaProfessores, arq);
 		
 		pw.flush();
 		pw.close();
@@ -371,8 +362,43 @@ public class ProfessorController implements ActionListener {
 		taProfessorListaProfessores.setText("Professor cadastrado com sucesso!");
 	}
 
+	private void ordenarPorPontuacaoArquivo(Lista<Professor> listaProfessores, File arq) throws Exception {
+	    Professor[] professores = listaParaArray(listaProfessores);
+
+	    // Bubble Sort no array de professores
+	    for (int i = 0; i < professores.length - 1; i++) {
+	        for (int j = 0; j < professores.length - i - 1; j++) {
+	            if (professores[j].getPontuacaoProfessor() < professores[j + 1].getPontuacaoProfessor()) {
+	                Professor temp = professores[j];
+	                professores[j] = professores[j + 1];
+	                professores[j + 1] = temp;
+	            }
+	        }
+	    }
+
+	    // Sobrescreve o arquivo com os dados ordenados
+	    try (BufferedWriter pw = new BufferedWriter(new FileWriter(arq))) {
+	        for (Professor professor : professores) {
+	            pw.write(professor.toString());
+	            pw.newLine();
+	        }
+	    }
+	}
+		
+		public Professor[] listaParaArray(Lista<Professor> listaProfessores) throws Exception {
+		    // Cria um array do tamanho da lista
+		    Professor[] professores = new Professor[listaProfessores.size()];
+
+		    // Itera pela lista e preenche o array
+		    for (int i = 0; i < listaProfessores.size(); i++) {
+		        professores[i] = listaProfessores.get(i);
+		    }
+
+		    return professores;
+		}
+	
 	//CHECAR SE O PROFESSOR JÁ ESTÁ CADASTRADO ATRAVÉS DO CPF 
-	private boolean professorCadastrado(File arq, String cpfProfessor) throws IOException {
+	public boolean professorCadastrado(File arq, String cpfProfessor) throws IOException {
 		if (!arq.exists()) {
 	        return false; 
 	    }

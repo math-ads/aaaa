@@ -412,7 +412,7 @@ public class TelaCadastro extends JFrame {
 				btnProfessorExcluir.addActionListener(pCont);
 				
 				// inscricao botoes
-				InscricaoController iCont = new InscricaoController(tfInscricaoCpfProfessor, tfDisciplinaNome, tfCursoArea, taInscricaoListaDisciplinasOuInscricoes);
+				InscricaoController iCont = new InscricaoController(tfInscricaoCpfProfessor, tfInscricaoProcesso, tfInscricaoDisciplina, taInscricaoListaDisciplinasOuInscricoes);
 				btnInscricaoSalvar.addActionListener(iCont);
 				btnInscricaoProcurarDisciplinas.addActionListener(iCont);
 				btnInscricaoExcluir.addActionListener(iCont);

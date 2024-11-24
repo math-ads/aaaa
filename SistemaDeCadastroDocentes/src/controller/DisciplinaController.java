@@ -18,6 +18,7 @@ import javax.swing.JTextField;
 
 import br.edu.fateczl.Lista;
 import model.Disciplina;
+import model.Inscricao;
 import model.Professor;
 
 public class DisciplinaController implements ActionListener {
@@ -66,12 +67,150 @@ public class DisciplinaController implements ActionListener {
 		}
 		if (cmd.equals("Excluir")) {
 			try {
-				busca();
+				excluir();
 			} catch (IOException e1) {
 				
 				e1.printStackTrace();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		}
+	}
+
+	private void excluir() throws Exception {
+		Disciplina disciplina = new Disciplina();
+		disciplina.setCodigoDisciplina(tfDisciplinaCodigo.getText());
+		disciplina.setNomeDisciplina(tfDisciplinaNome.getText());
+		disciplina.setDiaSemana((String) cbDisciplinaDias.getSelectedItem());  
+		disciplina.setHoraInicio(Integer.parseInt(tfDisciplinaHorario.getText()));
+	    disciplina.setQuantHoras(Integer.parseInt(tfDisciplinaCarga.getText()));
+		disciplina.setCodigoCurso(tfDisciplinaCurso.getText());	
+		
+		CursoController cCont = new CursoController();
+		String path = System.getProperty("user.home") + File.separator + "SistemaCadastroDocentes";
+		File dir = new File (path);
+		if (!dir.exists()) {
+			dir.mkdir();
+		}
+		File arq = new File(path, "curso.csv"); 
+		boolean cursoExiste = cCont.cursoCadastrado(arq, disciplina.getCodigoCurso());   
+		if (cursoExiste==true) {
+			arq = new File(path, "Arquivodisciplina.csv"); 
+			boolean cadastrado = disciplinaCadastrada(arq, disciplina.getCodigoDisciplina());
+			if( cadastrado == true ) {
+				excluirDisciplina(disciplina);
+			}
+		}else {
+			taDisciplinaLista.setText("Curso não existe, verifique o codigo");
+		}
+		tfDisciplinaCodigo.setText("");
+		tfDisciplinaNome.setText("");
+		tfDisciplinaHorario.setText("");
+		tfDisciplinaCarga.setText("");
+		tfDisciplinaCurso.setText("");
+		
+	
+
+
+		
+	}
+
+	private void excluirDisciplina(Disciplina disciplina) throws Exception {
+		String codigo= disciplina.getCodigoDisciplina();
+		excluirInscritos(codigo); 
+		
+		 String path = System.getProperty("user.home") + File.separator + "SistemaCadastroDocentes";
+	        File arq = new File(path, "arquivoDisciplina.csv");
+	        File auxArq = new File(path, "arquivoDisciplinaAux.csv");
+	        if(arq.exists()&&arq.isFile()) {
+	        	BufferedReader fw = new BufferedReader(new InputStreamReader(new FileInputStream(arq)));
+	    		BufferedWriter pw = new BufferedWriter(new FileWriter(auxArq,true));
+	    		Lista<Disciplina> listaDisciplinas = new Lista<Disciplina>() ;
+	    		 String linha;
+	             while ((linha = fw.readLine()) != null) {
+	                 String[] vetLinha = linha.split(";");
+	    		Disciplina disciplinaAux = new Disciplina();
+	    		if(!vetLinha[0].equals( disciplina.getCodigoDisciplina())) {
+	    			if(listaDisciplinas.isEmpty()) {
+	    				disciplinaAux.setCodigoDisciplina(vetLinha[0]);
+	    	    		disciplinaAux.setNomeDisciplina(vetLinha[1]);
+	    	    		disciplinaAux.setDiaSemana(vetLinha[2]);
+	    	    		try {
+	    	    		disciplinaAux.setHoraInicio(Integer.parseInt(vetLinha[3]));
+	    	    		} catch (Exception e) { 		
+	    	    		}
+	    	    		disciplinaAux.setQuantHoras(Integer.parseInt(vetLinha[4]));
+	    	    		disciplina.setCodigoCurso(vetLinha[5]);
+	
+	    	        listaDisciplinas.addFirst(disciplina);}
+	    	    	else {
+	    	    		disciplinaAux.setCodigoDisciplina(vetLinha[0]);
+	    	    		disciplina.setNomeDisciplina(vetLinha[1]);
+	    	    		disciplina.setDiaSemana(vetLinha[2]);
+	    	    		try {
+	    	    		disciplinaAux.setHoraInicio(Integer.parseInt(vetLinha[3]));
+	    	    		} catch (Exception e) { 		
+	    	    		}
+	    	    		disciplinaAux.setQuantHoras(Integer.parseInt(vetLinha[4]));
+	    	    		disciplina.setCodigoCurso(vetLinha[5]);
+	    	 
+	    	   
+	    	    		
+	    	        listaDisciplinas.addLast(disciplinaAux);
+	    	    	}
+	    		      pw.write(linha);
+	                  pw.newLine();
+	    
+	             pw.close();
+	     		fw.close();
+	     		 arq.delete();
+	             auxArq.renameTo(arq);
+	  		taDisciplinaLista.setText("DisciplinaAtualizada");
+	  		}
+	     		
+		
+		
+	}}
+	        }
+
+	private void excluirInscritos(String codigo) throws Exception {
+		// TODO Auto-generated method stub
+		String path = System.getProperty("user.home") + File.separator + "SistemaCadastroDocentes";
+        File arq = new File(path, "inscricoes.csv");
+        File auxArq = new File(path, "inscricoesAux.csv");
+        if(arq.exists()&&arq.isFile()) {
+        	BufferedReader fw = new BufferedReader(new InputStreamReader(new FileInputStream(arq)));
+    		BufferedWriter pw = new BufferedWriter(new FileWriter(auxArq,true));
+    		Lista<Inscricao> listaInscricoes = new Lista<Inscricao>() ;
+    		 String linha;
+    		 while ((linha = fw.readLine()) != null) {
+                 String[] vetLinha = linha.split(";");
+    		Inscricao inscricaoAux= new Inscricao();
+    		
+    		
+    		if (!vetLinha[1].equals(codigo)) {
+    			if(listaInscricoes.isEmpty()) {
+    				inscricaoAux.setCpfProfessor(vetLinha[0]);
+    				inscricaoAux.setCodigoDisciplina(vetLinha[1]);
+    				inscricaoAux.setCodigoProcesso(vetLinha[2]);	
+    	        listaInscricoes.addFirst(inscricaoAux);}
+    	    	else {
+    	    		inscricaoAux.setCpfProfessor(vetLinha[0]);
+    				inscricaoAux.setCodigoDisciplina(vetLinha[1]);
+    				inscricaoAux.setCodigoProcesso(vetLinha[2]);	
+    	        listaInscricoes.addLast(inscricaoAux);
+    	        }
+    			pw.write(linha);
+                pw.newLine();
+  		} 
+    		
+         }
+    		 pw.close();
+      		fw.close();
+      		  arq.delete();
+      	        auxArq.renameTo(arq);}
+        
 	}
 
 	private void busca() throws IOException {
@@ -181,7 +320,8 @@ public class DisciplinaController implements ActionListener {
 	                 String[] vetLinha = linha.split(";");
 	    		Disciplina disciplinaAux = new Disciplina();
 	    		if(!vetLinha[0].equals( disciplina.getCodigoDisciplina())) {
-	    			if(listaDisciplinas.isEmpty()) {    	    		disciplinaAux.setCodigoDisciplina(vetLinha[0]);
+	    			if(listaDisciplinas.isEmpty()) {
+	    				disciplinaAux.setCodigoDisciplina(vetLinha[0]);
 	    	    		disciplinaAux.setNomeDisciplina(vetLinha[1]);
 	    	    		disciplinaAux.setDiaSemana(vetLinha[2]);
 	    	    		try {
