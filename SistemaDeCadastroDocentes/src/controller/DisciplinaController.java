@@ -149,7 +149,7 @@ public class DisciplinaController implements ActionListener {
 			arq = new File(path, "Arquivodisciplina.csv"); 
 			boolean cadastrado = disciplinaCadastrada(arq, disciplina.getCodigoDisciplina());
 			if( cadastrado == true ) {
-				atualizaDisciplina(disciplina.toString());
+				atualizaDisciplina(disciplina);
 			}
 			else {
 		cadastraDisciplina(disciplina.toString());
@@ -209,11 +209,33 @@ public class DisciplinaController implements ActionListener {
 	    	    		
 	    	        listaDisciplinas.addLast(disciplinaAux);
 	    	    	}
-	    		}
+	    		      pw.write(linha);
+	                  pw.newLine();
+	    		} else {
+            		if(listaDisciplinas.isEmpty()) {
+                		
+            			 listaDisciplinas.addFirst(disciplina);}
+                    	else {
+                    		
+                    		listaDisciplinas.addLast(disciplina);
+                    		
+                    	}
+            		pw.write(disciplina.toString());
+                    pw.newLine();
+                	}
+            
 	    			
 	    		}
+	             pw.close();
+	     		fw.close();
+	     		 arq.delete();
+	             auxArq.renameTo(arq);
+	  		taDisciplinaLista.setText("DisciplinaAtualizada");}
+	     		
 	        }
-	}
+	      
+    	
+	
 
 	//CADASTRAR NOVA DISCIPLINA
 	private void cadastraDisciplina(String csvDisciplina) throws Exception {

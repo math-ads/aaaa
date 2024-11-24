@@ -301,9 +301,10 @@ public class ProfessorController implements ActionListener {
                         	else {
                         		
                         		listaProfessores.addLast(professor);
-                        		pw.write(professor.toString());
-                                pw.newLine();
+                        		
                         	}
+                    		pw.write(professor.toString());
+                            pw.newLine();
                     	}
                 
                     	}
